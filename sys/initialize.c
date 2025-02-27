@@ -192,6 +192,8 @@ LOCAL int sysinit()
 	mon_init();	/* init monitor */
 //	ripinit();
 
+	linit(); /* initialize locks */
+
 #ifdef NDEVS
 	for (i=0 ; i<NDEVS ; i++ ) {	    
 	    init_dev(i);

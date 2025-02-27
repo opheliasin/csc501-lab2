@@ -1,0 +1,1 @@
+/* Simultaneous release of multiple locks: int releaseall (int numlocks, int ldes1,…, int ldesN) */

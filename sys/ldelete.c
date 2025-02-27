@@ -1,0 +1,1 @@
+/*Destroy a lock: int ldelete (int lockdescriptor) – Deletes the lock identified by the descriptor lockdescriptor. (see “Lock Deletion” below)*/
