@@ -5,11 +5,17 @@
 
 extern int nextlock;
 
-void linit() {
-	nextlock = NLOCKS-1;
+void linit()
+{
+	int i;
+	struct lentry *lptr;
 
-    for (i=0 ; i<NLOCKS ; i++) {	/* initialize locks */
-		(lptr = &locks[i])->lstate = SFREE;
-		lptr->lqtail = 1 + (lptr->lqhead = newqueue());
+	nextlock = NLOCKS - 1;
+
+	for (i = 0; i < NLOCKS; i++)
+	{ /* initialize locks */
+		(lptr = &locktab[i])->lstate = SFREE;
+		lptr->rqtail = 1 + (lptr->rqhead = newqueue());
+		lptr->wqtail = 1 + (lptr->wqhead = newqueue());
 	}
 }
