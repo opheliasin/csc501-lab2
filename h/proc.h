@@ -59,7 +59,9 @@ struct	pentry	{
 	short	pdevs[2];		/* devices to close upon exit	*/
 	int	fildes[_NFILE];		/* file - device translation	*/
 	int	ppagedev;		/* pageing dgram device		*/
-	int	pwaitret;
+	int	pwaitret; /* return value of wait() after process is unblocked */
+	
+	int plockret; /* return value of lock() after process is unblocked */
 	int pinh; /* current inherited prority of the process; 0 when process is running with original priority*/
 	int lockid; /* lock descriptor of the lock which the process is blocked within its wait queue */
 	int pwait_prio; /* waiting priority of the lock */
