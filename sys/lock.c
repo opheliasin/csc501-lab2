@@ -1,6 +1,7 @@
 /* Acquisition of a lock for read/write: int lock (int ldes1, int type, int priority) –  
 This call is explained below (“Wait on locks with Priority”).
  */
+
 #include <conf.h>
 #include <kernel.h>
 #include <proc.h>
@@ -8,59 +9,90 @@ This call is explained below (“Wait on locks with Priority”).
 #include <lock.h>
 #include <stdio.h>
 
+extern unsigned long ctr1000; 
+
 int lock(int ldes1, int type, int priority) {
-    // priority is any integer 
+    // priority can be any integer 
     STATWORD ps; 
     disable(ps);
-    
+	struct lentry *lptr;
+	struct pentry *pptr = &proctab[currpid];
+
     // if the process is trying to acquire has already been deleted, then return SYSERR 
-    if(isbadlock(ldes1) || lptr= &locks[ldes1])->lstate== DELETED) {
+    if (isbadlock(ldes1) || lptr = &locktab[ldes1])->lstate == LDELETED) {
         restore(ps);
 		pptr->plockret = SYSERR;
         return(pptr->plockret);
     }
 
-	// prevent process from acquiring a lock that's been recreated (same lock but different version)
+	// TODO: prevent process from acquiring a lock that's been recreated (same lock but different version)
 	
-	struct pentry *pptr = &proctab[currpid];
-	struct lentry *lptr = &locktab[ldes1];
+	struct qent *qptr = &q[lptr->wqhead];
+	int wmaxpprio; // TODO: check if this works
 
-	// check to see which process is the first reader in waiting queue 
-	int first_writer = lptr->wqhead;
+	if (lptr->lstate == LFREE) { //if current state of lock is free
+		//then process can acquire it regardless of type 
+		enqueue(ldes1, pptr->lqtail); // add lock to the process' queue
+		lptr->lstate = type; // set type of locking to the default type
+		restore(ps);
+		return(OK);
+	}
+	else if (lptr->lstate == LREAD) { 
+		if (type == READ) {
+			// if there's a higher or equal priority writer already waiting for the lock
+			if (wmaxpprio = &q[qptr->qnext]->qkey >= priority) {
+				pptr->pstate = PRWAIT;
+				pptr->lockid = ldes1;
+				insert(currpid, lptr->rqhead, priority); 
+				pptr->plockret = OK;
+				resched(); // switch to another process 
+				restore(ps);
+				return pptr->plockret;
+			} else {
+				
+				// all readers with higher priority than the highest priority writer should also be admitted 
+				struct qent *rptr = &q[lptr->rqhead].qnext;
+				int wmaxpprio *wptr = (&q[lptr->wqhead].qnext)->qkey;
 
-	// if it's a reader and a writer has a lock or there's a higher or equal priority writer already waiting for the lock
-	if (type == READ && (lptr->lstate == LWRITE || (&proctab[(lptr->wqhead).qnext]->pwait_prio >= priority))) {
+				while (rptr->qkey > wmaxpprio) { 
+					ready(getfirst(lptr->rqhead), RESCHYES); 
+				}
+				
+				restore(ps);
+				return(OK);
+			}
+
+		} else if (type == WRITE) {
 			pptr->pstate = PRWAIT;
 			pptr->lockid = ldes1;
-			insert(currpid, int head, priority);  // TODO: put process in waiting queue
+			insert(currpid, lptr->wqhead, priority); 
 			pptr->plockret = OK;
 			resched(); // switch to another process 
 			restore(ps);
 			return pptr->plockret;
-	} else if ((lptr->lstate != LFREE && type == WRITE)) {
-			pptr->pstate = PRWAIT;
-			pptr->lockid = ldes1;
-			insert(currpid, int head, priority); //TODO: put process in waiting queue (need to determine which one)
-			pptr->plockret = OK;
-			resched();
+		} else {
 			restore(ps);
-			return pptr->plockret;
-	} 
-
-	// TODO: all readers with higher priority than the highest priority writer should also be admitted 
-
-	struct qent *rptr = &q[lptr->rqhead];
-	struct qent *wptr = &q[lptr->wqhead].qnext;
-	if (type == READ) {
-		// loop through lock's reader's waiting queue 
-		while (qptr->qkey > wptr->qkey) {
-			ready(getfirst())
+			return(SYSERR);
 		}
+	} 
+	else if (lptr->lstate == LWRITE) {
+		pptr->pstate = PRWAIT;
+		pptr->lockid = ldes1;
+		if (type == READ) {
+			insert(currpid, lptr->rqhead, priority); 
+		} else if (type == WRITE) {
+			insert(currpid, lptr->wqhead, priority);
+		} else {
+			restore(ps);
+			return(SYSERR);
+		}
+		pptr->plockret = OK;
+		resched(); // switch to another process 
+		restore(ps);
+		return pptr->plockret;	
+	} 
+	else {
+		restore(ps);
+		return(SYSERR);
 	}
-
-	enqueue(ldes1, pptr->lqtail); // TODO: add lock to the process' queue
-	lptr->lstate = type; // set type of locking to READ
-	restore(ps);
-	return(OK);
-    
 }
