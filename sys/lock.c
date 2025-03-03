@@ -18,14 +18,15 @@ int lock(int ldes1, int type, int priority) {
 	struct lentry *lptr;
 	struct pentry *pptr = &proctab[currpid];
 
-    // if the process is trying to acquire has already been deleted, then return SYSERR 
-    if (isbadlock(ldes1) || lptr = &locktab[ldes1])->lstate == LDELETED) {
+    // if the process is trying to acquire has already been deleted, then return SYSERR
+	// prevent process from acquiring a lock that's been recreated:
+	//		solution: check if the lock was created before or after the lock was requested by the process
+
+    if (isbadlock(ldes1) || (lptr = &locktab[ldes1])->lstate == LDELETED || lptr->lcreatetime > pptr->pwait_time) {
         restore(ps);
 		pptr->plockret = SYSERR;
         return(pptr->plockret);
     }
-
-	// TODO: prevent process from acquiring a lock that's been recreated (same lock but different version)
 	
 	struct qent *qptr = &q[lptr->wqhead];
 	int wmaxpprio; // TODO: check if this works
@@ -44,6 +45,7 @@ int lock(int ldes1, int type, int priority) {
 				pptr->pstate = PRWAIT;
 				pptr->lockid = ldes1;
 				insert(currpid, lptr->rqhead, priority); 
+				pptr->pwait_time = ctr1000; // set start time in wait queue 
 				pptr->plockret = OK;
 				resched(); // switch to another process 
 				restore(ps);
@@ -66,6 +68,7 @@ int lock(int ldes1, int type, int priority) {
 			pptr->pstate = PRWAIT;
 			pptr->lockid = ldes1;
 			insert(currpid, lptr->wqhead, priority); 
+			pptr->pwait_time = ctr1000;
 			pptr->plockret = OK;
 			resched(); // switch to another process 
 			restore(ps);
@@ -87,6 +90,7 @@ int lock(int ldes1, int type, int priority) {
 			return(SYSERR);
 		}
 		pptr->plockret = OK;
+		pptr->pwait_time = ctr1000;
 		resched(); // switch to another process 
 		restore(ps);
 		return pptr->plockret;	

@@ -8,6 +8,8 @@
 
 LOCAL int newlock();
 
+extern unsigned long ctr1000; 
+
 /*------------------------------------------------------------------------
  * screate  --  create and initialize a lock, returning its id
  *------------------------------------------------------------------------
@@ -35,12 +37,13 @@ LOCAL int newlock()
 	int	lock;
 	int	i;
 
-	for (i=0 ; i<NLOCKS ; i++) {
-		lock=nextlock--;
+	for (i = 0; i < NLOCKS; i++) {
+		lock = nextlock--;
 		if (nextlock < 0)
-			nextlock = NLOCKS-1;
-		if (locks[lock].lstate==LFREE) {
-			locks[lock].lstate = LUSED;
+			nextlock = NLOCKS - 1;
+		if (locktab[lock].lstate == LFREE) {
+			locktab[lock].lstate = LUSED;
+			locktab[lock].lcreatetime = ctr1000; // increase version by 1 in case process tries to grab the same lock again
 			return(lock);
 		}
 	}
