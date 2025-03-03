@@ -54,7 +54,9 @@ int releaseall(int numlocks, long ldes)
 			hptr = hptr->qnext;
 		}
 
-		// check to see whether READ or WRITE has higher priority 
+		// TODO: check to see whether READ or WRITE has higher priority 
+
+		// TODO: just because one process is releasing the lock doesn't mean no other processes are holding it <- remember to check this 
 		// default: highest priority process gets the lock
 
 		lptr = &locktab[lock];
