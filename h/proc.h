@@ -65,6 +65,7 @@ struct	pentry	{
 	int pinh; /* current inherited prority of the process; 0 when process is running with original priority*/
 	int lockid; /* lock descriptor of the lock which the process is blocked within its wait queue */
 	int pwait_prio; /* waiting priority of the lock */
+	int pwait_time; /* wait time for lock */
 	int lqhead; /* head of list that stores all locks held by the process */
 	int lqtail; /* tail of list that stores all locks held by the process */
 };
