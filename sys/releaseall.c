@@ -8,14 +8,21 @@
 #include <lock.h>
 #include <stdio.h>
 
+/*------------------------------------------------------------------------
+ * releaseall  --  signal a lock, releasing waiting process(es)
+ *------------------------------------------------------------------------
+ */
+
+extern unsigned long ctr1000; 
+
 int releaseall(int numlocks, long ldes) 
 {	
 	STATWORD ps;    
+	disable(ps);
 	struct	lentry	*lptr;
 	struct pentry *pptr;
 	int return_state = SYSERR; // if lock in argument isn't held by calling process – return(SYSERR)
 
-	disable(ps);
 	unsigned long *a; /* points to list of args	*/
 	int release_locks[NLOCKS] = {0}; /* list of locks to be releasead */
 
@@ -23,27 +30,56 @@ int releaseall(int numlocks, long ldes)
 
 	int i;
 	int *lock;
+	struct qent *hptr = &q[pptr->lqhead]; 
 
+	// if there aren't any locks stored in the process's linked list then we don't have to run more checks
+	if isempty(hptr) {
+		return(return_state);
+	}
+
+	struct qent *wptr;
+	struct qent *rptr;
+	int longestwaitproc;
+
+	// for each lock, check to see if lock is present in the process's queue
 	for (i = 0; i < numlocks; i++)	{
-		release_locks[*a--] = 1;	/* onto release_locks array */
 		lock = *a--;
 
 		// while the queue is not empty, we check to see if we can find the lock in the queue
-		struct qent *hptr = &q[pptr->lqhead]; 
-		if (nonempty(hptr)) {
-			while (hptr != EMPTY) { 
-				if (&hptr == lock) {
-					return_state = OK; // return OK instead if found 
-					break;
+		while (hptr != EMPTY) { 
+			if (&hptr == lock) {
+				return_state = OK; // return OK instead if found 
+				break;
+			}
+			hptr = hptr->qnext;
+		}
+
+		// check to see whether READ or WRITE has higher priority 
+		// default: highest priority process gets the lock
+
+		lptr = &locktab[lock];
+
+		// if writer priority higher than reader priority 
+		if ((wptr = lptr->wqhead)->qkey > (rptr = lptr->rqhead)->qkey) {
+
+			while () { // check if there are multiple writers with same priority - if so, run the one longest waiting time 
+				if () {
+					longestwaitproc = ; 
 				}
-				hptr = hptr->qnext;
-			} 
+			}
 		}
-		// release one waiting process 
-		if ((lptr->lcnt++) < 0) {
-			// we check to see whether READ or WRITE has higher priority 
-			
+		else if (wptr->qkey < rptr->qkey) { // if reader priority higher than writer priority 
+			// check if there are multiple writers with same priority - if so, run the one longest waiting time 
+
+		}  else { // else if it's equal
+			// if writer waiting time is at least 0.5 seconds longer than reader, then writer runs
+			if () {
+				ready(getfirst(lptr->wqhead));
+			} else {
+				ready(getfirst(lptr->rqhead));
+			}
 		}
+					
 	}
 	restore(ps);
 	return(return_state);
