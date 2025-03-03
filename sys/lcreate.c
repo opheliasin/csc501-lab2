@@ -43,7 +43,7 @@ LOCAL int newlock()
 			nextlock = NLOCKS - 1;
 		if (locktab[lock].lstate == LFREE) {
 			locktab[lock].lstate = LUSED;
-			locktab[lock].lcreatetime = ctr1000; // increase version by 1 in case process tries to grab the same lock again
+			locktab[lock].lcreatetime = ctr1000; // in case process tries to grab the same lock again reset lcreatetime
 			return(lock);
 		}
 	}
