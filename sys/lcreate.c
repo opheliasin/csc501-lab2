@@ -19,7 +19,7 @@ int lcreate() {
 	int	lock;
 
 	disable(ps);
-	if ( count<0 || (lock=newlock())==SYSERR ) {
+	if (lock=newlock()==SYSERR) {
 		restore(ps);
 		return(SYSERR);
 	}
@@ -42,8 +42,9 @@ LOCAL int newlock()
 		if (nextlock < 0)
 			nextlock = NLOCKS - 1;
 		if (locktab[lock].lstate == LFREE) {
-			locktab[lock].lstate = LUSED;
-			locktab[lock].lcreatetime = ctr1000; // in case process tries to grab the same lock again reset lcreatetime
+			locktab[lock].lstate = LAVAIL;
+			locktab[lock].lcreatetime = ctr1000; // in case which the process tries to grab the same lock again reset lcreatetime
+			locktab[lock].curr_mask = 0;
 			return(lock);
 		}
 	}

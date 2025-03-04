@@ -1,6 +1,6 @@
 #include <conf.h>
 #include <kernel.h>
-#include <sem.h>
+#include <q.h>
 #include <lock.h>
 
 extern int nextlock;
@@ -16,7 +16,7 @@ void linit()
 	{ /* initialize locks */
 		(lptr = &locktab[i])->lstate = SFREE;
 
-		// how many extra spots in the q table do we need? (initialized in q.h) 			
+		// TODO: how many extra spots in the q table do we need? (initialized in q.h) 			
 
 		lptr->rqtail = 1 + (lptr->rqhead = newqueue());
 		lptr->wqtail = 1 + (lptr->wqhead = newqueue());
