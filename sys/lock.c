@@ -58,7 +58,7 @@ int lock(int ldes1, int type, int priority) {
 	else if (lptr->lstate == LREAD) { 
 		if (type == READ) {
 			// if there's a higher or equal priority writer already waiting for the lock
-			if (wmaxpprio = q[qptr->qnext].qkey >= priority) {
+			if ((wmaxpprio = q[qptr->qnext].qkey) >= priority) {
 				pptr->pstate = PRWAIT;
 				pptr->lockid = ldes1;
 				insert(currpid, lptr->rqhead, priority); 

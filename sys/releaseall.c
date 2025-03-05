@@ -28,7 +28,7 @@ int releaseall(int numlocks, long ldes)
     a = (unsigned long *)(&ldes) + (numlocks-1); /* last argument*/
 
 	int i;
-	int *lock;
+	int lock;
 	// struct qent *hptr = &q[pptr->lqhead]; 
 
 	// if there aren't any locks stored in the process's linked list then we don't have to run more checks
@@ -50,7 +50,7 @@ int releaseall(int numlocks, long ldes)
 		// we check to see if we can find the lock in the queue
 
 		// Change to bitmask
-		if ((pptr = &proctab[currpid])->locks & (1LL << *lock)) {
+		if ((pptr = &proctab[currpid])->locks & (1LL << lock)) {
 			return_state = OK;
 		} 
 		// while (hptr != EMPTY && (locktab[lock]->lstate != LFREE || locktab[lock]->lstate != LDELETED)) { 
@@ -67,12 +67,12 @@ int releaseall(int numlocks, long ldes)
 		// if it's SYSERR then we don't have to release it
 		if (return_state == OK) {
 
-			lptr = &locktab[*lock];
+			lptr = &locktab[lock];
 			// remove process from the lock's linked list
 			lptr->curr_mask &= ~(1LL << currpid);
 
 			// remove lock from process's linked list
-			pptr->locks &= ~(1LL << *lock);
+			pptr->locks &= ~(1LL << lock);
 
 			// TODO: recalculate locktab[lock]->lprio 
 
@@ -123,11 +123,11 @@ int releaseall(int numlocks, long ldes)
 					}
 				}				
 			} 
-			elif (lptr->lstate == LREAD) {
+			else if (lptr->lstate == LREAD) {
 				// If other processes are still holding the lock for reading after the current process releases it, the lock remains in READ state. The lock will only be available when the last reader releases it. 
 
 				// get writer with highest priority 
-				wmaxpprio = q[(&locktab[lock])->wqhead].qnext.qkey; //check syntax
+				wmaxpprio = q[q[(&locktab[lock])->wqhead].qnext].qkey;
 				int rptr = q[(&locktab[lock])->rqhead].qnext; // change variable name and rewrite pointer logic
 
 				while (q[rptr].qkey > wmaxpprio) { 

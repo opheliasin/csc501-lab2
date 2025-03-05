@@ -14,7 +14,7 @@ void linit()
 
 	for (i = 0; i < NLOCKS; i++)
 	{ /* initialize locks */
-		(lptr = &locktab[i])->lstate = SFREE;
+		(lptr = &locktab[i])->lstate = LFREE;
 
 		// TODO: how many extra spots in the q table do we need? (initialized in q.h) 			
 

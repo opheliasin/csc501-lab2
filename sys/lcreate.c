@@ -16,9 +16,10 @@ extern unsigned long ctr1000;
  */
 int lcreate() {
     STATWORD ps;    
-	int	lock;
-
 	disable(ps);
+	int	lock;
+	
+	kprintf("begin lcreate");
 	if (lock=newlock()==SYSERR) {
 		restore(ps);
 		return(SYSERR);
